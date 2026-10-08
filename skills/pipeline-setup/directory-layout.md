@@ -48,6 +48,8 @@
     pipeline-state-path.sh
   references/      # *.md -- copied from source/shared/references/ (no conversion)
   skills/          # SKILL.md directories -- copied from skills/
+  pipeline-config.json   # Branching strategy, feature flags
+  .atelier-version       # Plugin version marker
   mcp.json         # MCP server config (when brain enabled)
 ```
 

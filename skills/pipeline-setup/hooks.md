@@ -206,10 +206,14 @@ See the "Agent Discovery" section in `agent-system.md` for full details.
 
 ### Step 3b: Write Version Marker
 
-After copying all template files, write the current plugin version to `.claude/.atelier-version`:
+After copying all template files, write the current plugin version to the platform version marker. Use the platform-appropriate path (determined in Step 2):
+- **Claude Code:** `.claude/.atelier-version`
+- **VSCode:** `.github/.atelier-version`
+- **Cursor:** `.cursor-plugin/.atelier-version`
 
 ```bash
 # Read version from plugin.json and write to project
+# Replace .claude/.atelier-version with the platform-appropriate path above
 grep -o '"version"[[:space:]]*:[[:space:]]*"[^"]*"' "${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json" | head -1 | grep -o '"[^"]*"$' | tr -d '"' > .claude/.atelier-version
 ```
 

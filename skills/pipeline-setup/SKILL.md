@@ -19,9 +19,9 @@ This skill installs the full Atelier Pipeline multi-agent orchestration system i
   <produces>
     - **Claude Code:** `.claude/rules/`, `.claude/agents/`, `.claude/commands/`, `.claude/references/`, `.claude/hooks/` populated from source overlays. `.claude/pipeline-config.json`, `.claude/settings.json`, `.claude/.atelier-version`.
     - **Cursor:** `.cursor-plugin/agents/`, `.cursor-plugin/rules/*.mdc` reference wrappers. Hook scripts copied to `.cursor-plugin/hooks/`.
-    - **VSCode:** `.github/agents/` (`*.agent.md`), `.github/instructions/` (`*.instructions.md`), `.github/hooks/` (`hooks.json` + enforcement scripts), `.github/references/` (plain `.md`), `.github/skills/` (skill directories). `.github/mcp.json` when brain is enabled.
+    - **VSCode:** `.github/agents/` (`*.agent.md`), `.github/instructions/` (`*.instructions.md`), `.github/hooks/` (`hooks.json` + enforcement scripts), `.github/references/` (plain `.md`), `.github/skills/` (skill directories). `.github/pipeline-config.json`, `.github/.atelier-version`. `.github/mcp.json` when brain is enabled.
     - `docs/pipeline/` state files (`pipeline-state.md`, `context-brief.md`, `error-patterns.md`, `investigation-ledger.md`) -- all targets share this directory.
-    - `CLAUDE.md` with pipeline section appended (Claude Code and VSCode).
+    - `CLAUDE.md` with pipeline section appended (Claude Code only; VSCode skips this -- always-apply instructions cover the same content).
   </produces>
   <invalidates>
     - Any prior install's `.claude/rules/`, `.claude/agents/`, `.claude/commands/`, `.claude/references/`, and `.claude/hooks/` contents (overwritten from source on re-sync; live state files in `docs/pipeline/` and `.claude/pipeline-config.json` are preserved).
@@ -48,6 +48,8 @@ Before gathering project information, understand where the pipeline installs fil
 | `.claude/settings.json` | Hook registrations (tells Claude Code to run the hooks) | Project-local, committed to repo | Yes -- hooks activate for all team members |
 | `docs/pipeline/` | Pipeline state, context brief, error patterns | Project-local, committed to repo | Yes -- session recovery works across machines |
 | `CLAUDE.md` | Pipeline section appended to project instructions | Project-local, committed to repo | Yes -- Claude Code reads this automatically |
+
+**VSCode path differences:** The table above shows Claude Code paths (`.claude/`). For VSCode, `pipeline-config.json` goes to `.github/pipeline-config.json`, `.atelier-version` to `.github/.atelier-version`, and hook registrations live in `.github/hooks/hooks.json` (no `settings.json`). `CLAUDE.md` is not written for VSCode -- always-apply instructions serve the same purpose.
 
 **Key points:**
 - All installed files live inside the project directory -- nothing is written to `~/.claude/` or other user-level locations.
@@ -493,7 +495,9 @@ Unconditionally run this cleanup on every /pipeline-setup invocation. Silent unl
 
 `dashboard_mode` was removed in ADR-0060. Older installs may carry the key.
 
-1. **Check pipeline-config.json:** If `.claude/pipeline-config.json` exists and contains a `dashboard_mode` key, remove it. Write the result to a temporary file then rename it into place so a mid-write failure cannot corrupt the config:
+**Platform path:** Use the platform-appropriate config path (detected in Step 2): Claude Code: `.claude/pipeline-config.json`; VSCode: `.github/pipeline-config.json`; Cursor: `.cursor-plugin/pipeline-config.json`. Substitute the correct path for `p` in the script below.
+
+1. **Check pipeline-config.json:** If the platform config file exists and contains a `dashboard_mode` key, remove it. Write the result to a temporary file then rename it into place so a mid-write failure cannot corrupt the config:
 
    ```bash
    python3 -c "
@@ -518,7 +522,9 @@ Unconditionally run this cleanup on every /pipeline-setup invocation. Silent unl
 
 ### Step 0h: Wire Brain Capture Gate Hooks in settings.json
 
-Unconditionally run this migration on every /pipeline-setup invocation. It is silent unless it makes a change. This step ensures the brain-capture gate hooks introduced in ADR-0053 are correctly wired and ordered in existing installations.
+**VSCode: skip this step entirely.** VSCode hook registrations live in `.github/hooks/hooks.json` and are managed by Step 3d. There is no `.claude/settings.json` for VSCode.
+
+Unconditionally run this migration on every /pipeline-setup invocation (Claude Code and Cursor only). It is silent unless it makes a change. This step ensures the brain-capture gate hooks introduced in ADR-0053 are correctly wired and ordered in existing installations.
 
 Three things to fix:
 
@@ -716,7 +722,7 @@ Ask conversationally (not as a list):
    If missing, print `No tokens.md found at [path]. Skipping -- a valid design
    system must include tokens.md.` and continue without setting the path.
 3. **Set config.** Resolve to absolute path, and store in
-   `.claude/pipeline-config.json` as `design_system_path`.
+   the platform config file as `design_system_path` (Claude Code: `.claude/pipeline-config.json`; VSCode: `.github/pipeline-config.json`; Cursor: `.cursor-plugin/pipeline-config.json`).
 4. **List discovered files.** Print: `Design system path set to [path]. Found:
    [list of .md files]. [icons/ directory present | No icons/ directory]`.
 
@@ -774,7 +780,7 @@ Before asking about branching strategy, determine git availability.
 - **GitLab Flow additional:** Ask "What are your environment branch names?" Default: staging, production.
 - **GitFlow:** Platform detection only, no additional questions (conventions are standardized). Integration branch is `develop`.
 
-**Store selection:** Write `.claude/pipeline-config.json` with the appropriate values from `source/shared/pipeline/pipeline-config.json` as the template, filled with the user's selections. The template includes `design_system_path: null` (convention-based auto-detection). Use `/load-design` after setup to configure an external design system path if needed.
+**Store selection:** Write the platform config file (`{config_dir}/pipeline-config.json` — Claude Code: `.claude/`, VSCode: `.github/`, Cursor: `.cursor-plugin/`) with the appropriate values from `source/shared/pipeline/pipeline-config.json` as the template, filled with the user's selections. The template includes `design_system_path: null` (convention-based auto-detection). Use `/load-design` after setup to configure an external design system path if needed.
 
 ### Step 1d: Model Provider Selection
 
@@ -799,7 +805,7 @@ Ask the user one question:
 - **AWS Bedrock:** Confirm: "Make sure `ANTHROPIC_AWS_REGION` is set in your Claude Code environment, and that you have either `AWS_PROFILE` or the `AWS_ACCESS_KEY_ID` + `AWS_SECRET_ACCESS_KEY` pair configured. Also verify that Claude model access is enabled in the AWS Bedrock console for your region." No input required — informational only.
 - **Google Vertex AI:** Confirm: "Make sure `ANTHROPIC_VERTEX_PROJECT_ID` and `CLOUD_ML_REGION` are set in your Claude Code environment, and that service account auth is configured (via `GOOGLE_APPLICATION_CREDENTIALS` or `gcloud auth application-default login`)." No input required — informational only.
 
-**Write model_provider:** The template ships with `"model_provider": "anthropic"` — no file change is needed when the user selects the default. For AWS Bedrock or Google Vertex AI, update `.claude/pipeline-config.json` to set `model_provider` to `bedrock` or `vertex` respectively.
+**Write model_provider:** The template ships with `"model_provider": "anthropic"` — no file change is needed when the user selects the default. For AWS Bedrock or Google Vertex AI, update the platform config file (`{config_dir}/pipeline-config.json`) to set `model_provider` to `bedrock` or `vertex` respectively.
 
 ### Step 1e: Tech Stack Dependencies (Optional Offer)
 
@@ -873,7 +879,7 @@ After Step 1e, configure which agents are active for this project.
 
 **Existing roster detection (update path):**
 
-If `.claude/pipeline-config.json` already exists and contains an `agent_roster` key, detect the existing configuration and ask:
+If the platform config file (`{config_dir}/pipeline-config.json` — Claude Code: `.claude/`, VSCode: `.github/`, Cursor: `.cursor-plugin/`) already exists and contains an `agent_roster` key, detect the existing configuration and ask:
 
 > You have an existing agent roster configured. Keep your current configuration or customize it?
 >
@@ -925,11 +931,11 @@ Then ask about each optional agent **one at a time** (do not dump the full list)
 
 **Write the roster:**
 
-After all agent selections, write the `agent_roster` object to `.claude/pipeline-config.json`. Always include the core trio with `firing: "core"`. For each optional agent the user selected, include it with the chosen firing position. For each agent the user declined, set `enabled: false, firing: "on-demand"` (so the roster key exists for hooks to read, but the agent is disabled).
+After all agent selections, write the `agent_roster` object to the platform config file (`{config_dir}/pipeline-config.json`). Always include the core trio with `firing: "core"`. For each optional agent the user selected, include it with the chosen firing position. For each agent the user declined, set `enabled: false, firing: "on-demand"` (so the roster key exists for hooks to read, but the agent is disabled).
 
 For Agatha, always write `firing: "pipeline-end"` — no other firing position is valid.
 
-Also set `generic_commit_enabled` in `.claude/pipeline-config.json`:
+Also set `generic_commit_enabled` in the platform config file (`{config_dir}/pipeline-config.json`):
 - `true` when Ellis is not enabled (or not selected)
 - `false` when Ellis is enabled
 
@@ -1174,13 +1180,14 @@ When VSCode is detected, assemble and write to `.github/` instead of `.claude/`.
 | `source/shared/references/*.md` | `.github/references/*.md` | Plain `.md`, no conversion |
 | `skills/*/SKILL.md` and supporting files | `.github/skills/*/SKILL.md` | Skill directories |
 | Brain MCP config (when brain enabled) | `.github/mcp.json` | |
-| `source/shared/pipeline/*.md` + `pipeline-config.json` | `docs/pipeline/` (state files, state file guard applies) | Shared with other targets |
+| `source/shared/pipeline/*.md` | `docs/pipeline/` (state file guard applies) | Shared with other targets |
+| `source/shared/pipeline/pipeline-config.json` | `.github/pipeline-config.json` | Branching strategy configuration (state file guard applies) |
 
 **VSCode does not use `settings.json`.** All hook registrations are in `.github/hooks/hooks.json`. No `.claude/settings.json` step runs for VSCode.
 
 **VSCode does not install commands directory.** Slash commands map to user-invocable agents (`user-invocable: true` in frontmatter). No `.github/commands/` directory needed.
 
-**State file guard:** The 5 pipeline state files in `docs/pipeline/` and `.claude/pipeline-config.json` are live state — they contain active pipeline progress, user decisions, and project configuration. On re-install or update:
+**State file guard:** The 5 pipeline state files in `docs/pipeline/` and the platform config file (`{config_dir}/pipeline-config.json` — Claude Code: `.claude/`, VSCode: `.github/`, Cursor: `.cursor-plugin/`) are live state — they contain active pipeline progress, user decisions, and project configuration. On re-install or update:
 - If the destination file already exists, **skip it** — do not overwrite
 - If the destination file does not exist, copy the template (fresh install)
 - To force a reset, the user must explicitly delete the file first

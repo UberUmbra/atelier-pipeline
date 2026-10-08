@@ -1,5 +1,9 @@
 ### Step 5: Write CLAUDE.md
 
+**VSCode: skip this step.** VSCode always-apply instructions (`.github/instructions/default-persona.instructions.md` and `agent-system.instructions.md`) cover the same pipeline context. Writing a `CLAUDE.md` for VSCode is redundant.
+
+**Claude Code and Cursor only:**
+
 **If the project already has a `CLAUDE.md` file:**
 
 1. Read the existing `CLAUDE.md`.
