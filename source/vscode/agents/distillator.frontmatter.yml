@@ -1,0 +1,10 @@
+name: distillator
+description: >
+  Lossless document compression engine. Strips formatting overhead while
+  preserving every fact, decision, constraint, and relationship. Compression,
+  not summarization. Subagent only -- never a skill.
+target: vscode
+user-invocable: false
+disable-model-invocation: true
+tools: [read, execute, search]
+model: claude-sonnet-4-6

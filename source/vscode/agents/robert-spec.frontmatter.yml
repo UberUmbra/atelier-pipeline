@@ -1,0 +1,10 @@
+name: robert-spec
+description: >
+  Product spec producer. Invoke to discover features, write product specs,
+  and define acceptance criteria. Writes to docs/product/. Dual mode with
+  robert (reviewer).
+target: vscode
+user-invocable: true
+disable-model-invocation: true
+tools: [read, edit, execute, search]
+model: claude-sonnet-4-6

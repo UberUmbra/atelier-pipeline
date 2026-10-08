@@ -253,3 +253,71 @@ alwaysApply: false
 | `source/shared/references/routing-detail.md` | `.cursor-plugin/rules/routing-detail.mdc` | Auto-routing intent detection matrix -- loaded JIT when Eva encounters edge-case routing decisions |
 
 **Skip when:** Running in Claude Code (no `CURSOR_PROJECT_DIR` env var). Claude Code reads `.claude/references/*.md` directly without `.mdc` wrappers.
+
+### Step 3d: VSCode Hook Installation
+
+When running inside VSCode (detected via `VSCODE_PID` env var or `TERM_PROGRAM=vscode`), install hooks to `.github/hooks/` instead of `.claude/hooks/`.
+
+#### VSCode hooks.json
+
+Copy `source/vscode/hooks/hooks.json` to `.github/hooks/hooks.json`. This file uses PascalCase event keys and project-relative paths:
+
+```json
+{
+  "hooks": [
+    {
+      "event": "PreToolUse",
+      "matcher": "edit",
+      "command": ".github/hooks/enforce-paths.sh"
+    },
+    {
+      "event": "SessionStart",
+      "command": ".github/hooks/session-boot.sh"
+    }
+  ]
+}
+```
+
+**Important:** `matcher` values are documented but **ignored at runtime** in VSCode/Copilot -- all hooks for an event fire unconditionally. The `enforce-paths.sh` script self-filters by reading `tool_name` from stdin JSON (`case "$TOOL_NAME" in ... Write|Edit|MultiEdit) ;; *) exit 0 ;; esac`) so non-write tool calls pass through harmlessly. No changes to the script are needed.
+
+#### VSCode hook scripts
+
+Copy the same enforcement scripts from `source/claude/hooks/` -- these scripts already handle project root detection via env var fallbacks. The `SCRIPT_DIR/../..` pattern resolves correctly for `.github/hooks/` depth (two levels up from `hooks/` is the project root):
+
+| Source | Destination | Purpose |
+|--------|-------------|---------|
+| `source/vscode/hooks/hooks.json` | `.github/hooks/hooks.json` | Hook event registrations |
+| `source/vscode/hooks/enforcement-config.json` | `.github/hooks/enforcement-config.json` | Project-specific paths and agent rules |
+| `source/shared/hooks/session-boot.sh` | `.github/hooks/session-boot.sh` | Session boot data collector (SessionStart) |
+| `source/shared/hooks/hook-lib.sh` | `.github/hooks/hook-lib.sh` | Shared hook utility library |
+| `source/shared/hooks/pipeline-state-path.sh` | `.github/hooks/pipeline-state-path.sh` | Per-worktree session state path resolver |
+| `source/claude/hooks/enforce-eva-paths.sh` | `.github/hooks/enforce-eva-paths.sh` | Blocks main thread (Eva) Write/Edit outside allowed paths |
+| `source/claude/hooks/enforce-colby-paths.sh` | `.github/hooks/enforce-colby-paths.sh` | Per-agent: Colby blocked from colby_blocked_paths |
+| `source/claude/hooks/enforce-sarah-paths.sh` | `.github/hooks/enforce-sarah-paths.sh` | Per-agent: Sarah can only write to docs/architecture/ |
+| `source/claude/hooks/enforce-agatha-paths.sh` | `.github/hooks/enforce-agatha-paths.sh` | Per-agent: Agatha can only write to docs/ |
+| `source/claude/hooks/enforce-product-paths.sh` | `.github/hooks/enforce-product-paths.sh` | Per-agent: Robert-spec can only write to docs/product/ |
+| `source/claude/hooks/enforce-ux-paths.sh` | `.github/hooks/enforce-ux-paths.sh` | Per-agent: Sable-ux can only write to docs/ux/ |
+| `source/claude/hooks/enforce-ellis-paths.sh` | `.github/hooks/enforce-ellis-paths.sh` | Per-agent: Ellis can only write to CHANGELOG.md and CI/CD paths |
+
+After copying, make the `.sh` files executable: `chmod +x .github/hooks/*.sh`
+
+#### Project root detection
+
+VSCode hook scripts determine the project root using this fallback chain (already coded into the scripts via `SCRIPT_DIR/../..`):
+
+```bash
+PROJECT_ROOT="${VSCODE_CWD:-${GITHUB_WORKSPACE:-$(cd "$SCRIPT_DIR/../.." && pwd)}}"
+```
+
+`SCRIPT_DIR` resolves to `.github/hooks/`, so `$SCRIPT_DIR/../..` is the project root. No script changes needed.
+
+#### Customize enforcement-config.json
+
+After copying `source/vscode/hooks/enforcement-config.json` to `.github/hooks/enforcement-config.json`, customize with project-specific values (same fields as Claude Code):
+
+- `pipeline_state_dir`: pipeline state directory (default: `docs/pipeline`)
+- `colby_blocked_paths`: paths Colby cannot write to
+- `test_patterns`: patterns matching project test files
+- `test_command`: full test suite command
+
+**VSCode does not use settings.json.** Hook registrations live entirely in `.github/hooks/hooks.json`. There is no separate settings file to update.

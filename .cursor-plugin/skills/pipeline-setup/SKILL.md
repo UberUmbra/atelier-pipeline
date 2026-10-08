@@ -11,19 +11,17 @@ This skill installs the full Atelier Pipeline multi-agent orchestration system i
 
 <contract>
   <requires>
-    - `CLAUDE_PLUGIN_ROOT` (Claude Code) or `CURSOR_PROJECT_DIR` (Cursor) environment variable set by the runtime.
-    - Plugin `source/` tree present at `${CLAUDE_PLUGIN_ROOT}/source/` (shared, claude, cursor overlays).
-    - Write access to project root (`.claude/`, `docs/`, `CLAUDE.md`).
-    - `jq` available on `PATH` for hook registration in `settings.json`.
+    - `CLAUDE_PLUGIN_ROOT` (Claude Code) or `CURSOR_PROJECT_DIR` (Cursor) or `VSCODE_PID`/`TERM_PROGRAM=vscode` (VSCode) environment variable set by the runtime.
+    - Plugin `source/` tree present at `${CLAUDE_PLUGIN_ROOT}/source/` (shared, claude, cursor, vscode overlays).
+    - Write access to project root (`.claude/` for Claude Code, `.cursor-plugin/` for Cursor, `.github/` for VSCode, `docs/`, `CLAUDE.md`).
+    - `jq` available on `PATH` for hook registration in `settings.json` (Claude Code/Cursor) or `hooks.json` (VSCode).
   </requires>
   <produces>
-    - `.claude/rules/`, `.claude/agents/`, `.claude/commands/`, `.claude/references/`, `.claude/hooks/` populated from source overlays.
-    - `.claude/pipeline-config.json` with branching strategy, project name, and feature flags.
-    - `.claude/settings.json` with hook registrations (PreToolUse, SubagentStart, SubagentStop, SessionStart, PreCompact, PostCompact, StopFailure).
-    - `.claude/.atelier-version` plugin version marker.
-    - `docs/pipeline/` state files (`pipeline-state.md`, `context-brief.md`, `error-patterns.md`, `investigation-ledger.md`).
-    - `CLAUDE.md` with pipeline section appended.
-    - Cursor only: `.cursor-plugin/rules/*.mdc` reference wrappers.
+    - **Claude Code:** `.claude/rules/`, `.claude/agents/`, `.claude/commands/`, `.claude/references/`, `.claude/hooks/` populated from source overlays. `.claude/pipeline-config.json`, `.claude/settings.json`, `.claude/.atelier-version`.
+    - **Cursor:** `.cursor-plugin/agents/`, `.cursor-plugin/rules/*.mdc` reference wrappers. Hook scripts copied to `.cursor-plugin/hooks/`.
+    - **VSCode:** `.github/agents/` (`*.agent.md`), `.github/instructions/` (`*.instructions.md`), `.github/hooks/` (`hooks.json` + enforcement scripts), `.github/references/` (plain `.md`), `.github/skills/` (skill directories). `.github/mcp.json` when brain is enabled.
+    - `docs/pipeline/` state files (`pipeline-state.md`, `context-brief.md`, `error-patterns.md`, `investigation-ledger.md`) -- all targets share this directory.
+    - `CLAUDE.md` with pipeline section appended (Claude Code and VSCode).
   </produces>
   <invalidates>
     - Any prior install's `.claude/rules/`, `.claude/agents/`, `.claude/commands/`, `.claude/references/`, and `.claude/hooks/` contents (overwritten from source on re-sync; live state files in `docs/pipeline/` and `.claude/pipeline-config.json` are preserved).
@@ -985,18 +983,37 @@ Note: `sable` and `sable-ux` are always-on and never appear in the roster. `robe
 
 ### Step 2: Read Templates
 
-Read the template files from the plugin's templates directory. These serve as the base for each installed file. Source files are split into three directories: `source/shared/` (platform-agnostic content), `source/claude/` (Claude Code overlays), and `source/cursor/` (Cursor overlays).
+Read the template files from the plugin's templates directory. These serve as the base for each installed file. Source files are split into four directories: `source/shared/` (platform-agnostic content), `source/claude/` (Claude Code overlays), `source/cursor/` (Cursor overlays), and `source/vscode/` (VSCode overlays).
 
-**Platform detection:** If the environment variable `CURSOR_PROJECT_DIR` is set, use Cursor overlays from `source/cursor/`. Otherwise, use Claude Code overlays from `source/claude/`. `CURSOR_PROJECT_DIR` takes precedence over `CLAUDE_PROJECT_DIR` -- when both are set, the Cursor overlay is used.
+**Platform detection:** Determine the active IDE from environment variables in this order:
+
+1. **VSCode:** `VSCODE_PID` is set OR `TERM_PROGRAM=vscode` → use VSCode overlays from `source/vscode/`. Write assembled files to `.github/`.
+2. **Cursor:** `CURSOR_PROJECT_DIR` is set → use Cursor overlays from `source/cursor/`. Write assembled files to `.cursor-plugin/`.
+3. **Claude Code (default):** Otherwise → use Claude Code overlays from `source/claude/`. Write assembled files to `.claude/`.
+
+`CURSOR_PROJECT_DIR` takes precedence over `CLAUDE_PROJECT_DIR` when both are set. VSCode detection takes precedence over both.
 
 **Overlay assembly procedure (agents):** Agent persona files are assembled at install time by combining a platform-specific frontmatter overlay with shared content:
 
-1. Read `source/{claude|cursor}/agents/{name}.frontmatter.yml` (YAML frontmatter only, no `---` delimiters)
+1. Read `source/{claude|cursor|vscode}/agents/{name}.frontmatter.yml` (YAML frontmatter only, no `---` delimiters)
 2. Read `source/shared/agents/{name}.md` (content body, no frontmatter)
 3. Concatenate: `---\n` + frontmatter content + `---\n` + body content
-4. Write the assembled file to the target project (e.g., `.claude/agents/{name}.md`)
+4. Write the assembled file to the target project:
+   - Claude Code: `.claude/agents/{name}.md`
+   - Cursor: `.cursor-plugin/agents/{name}.md`
+   - VSCode: `.github/agents/{name}.agent.md` (note the `.agent.md` extension)
 
 **Overlay assembly procedure (commands, rules, variants):** Same pattern -- platform-specific frontmatter overlay + shared content body, concatenated with `---` delimiters.
+
+**VSCode always-apply instructions (no overlay needed):** For the three always-apply rules (`default-persona`, `agent-system`, `branch-lifecycle`) that have no `applyTo:`, the assembly prepends an empty frontmatter block and writes directly:
+- `---\n---\n` + shared body content → `.github/instructions/{name}.instructions.md`
+
+No `source/vscode/rules/{name}.frontmatter.yml` overlay file is needed for these three.
+
+**VSCode glob-scoped instructions (overlay required):** Rules with `applyTo:` use a VSCode overlay:
+1. Read `source/vscode/rules/{name}.frontmatter.yml`
+2. Read `source/shared/rules/{name}.md`
+3. Concatenate: `---\n` + frontmatter content + `---\n` + body content → `.github/instructions/{name}.instructions.md`
 
 ```
 plugins/atelier-pipeline/source/
@@ -1049,6 +1066,12 @@ plugins/atelier-pipeline/source/
     hooks/hooks.json                   # Cursor hook configuration
     commands/*.frontmatter.yml         # Command frontmatter overlays
     rules/*.frontmatter.yml            # Rule frontmatter overlays
+    variants/*.frontmatter.yml         # Variant frontmatter overlays
+  vscode/                              # VSCode/Copilot overlays
+    agents/*.frontmatter.yml           # VSCode frontmatter for each agent (tool names: read/edit/execute/search/agent)
+    hooks/hooks.json                   # VSCode hook configuration (PascalCase events, project-relative paths)
+    hooks/enforcement-config.json      # Project-specific paths and agent rules (same structure as cursor)
+    rules/*.frontmatter.yml            # VSCode rule overlays (glob-scoped only; always-apply rules need no overlay)
     variants/*.frontmatter.yml         # Variant frontmatter overlays
 ```
 
@@ -1115,6 +1138,47 @@ Files are assembled from `source/shared/` (content) + `source/claude/` (overlays
 | `source/shared/variants/branch-lifecycle-{strategy}.md` assembled with overlay | `.claude/rules/branch-lifecycle.md` | Branch lifecycle rules (selected variant only) |
 
 **Total: 30 mandatory files across 5 directories (before hooks and config).**
+
+#### VSCode Installation Manifest
+
+When VSCode is detected, assemble and write to `.github/` instead of `.claude/`. The agent and rule files use different extensions:
+
+| Assembly Input | Output | Notes |
+|---------------|--------|-------|
+| `source/vscode/agents/eva.frontmatter.yml` + `source/shared/agents/eva.md` | `.github/agents/eva.agent.md` | `.agent.md` extension |
+| `source/vscode/agents/sarah.frontmatter.yml` + `source/shared/agents/sarah.md` | `.github/agents/sarah.agent.md` | |
+| `source/vscode/agents/colby.frontmatter.yml` + `source/shared/agents/colby.md` | `.github/agents/colby.agent.md` | |
+| `source/vscode/agents/investigator.frontmatter.yml` + `source/shared/agents/investigator.md` | `.github/agents/investigator.agent.md` | |
+| `source/vscode/agents/ellis.frontmatter.yml` + `source/shared/agents/ellis.md` | `.github/agents/ellis.agent.md` | |
+| `source/vscode/agents/robert.frontmatter.yml` + `source/shared/agents/robert.md` | `.github/agents/robert.agent.md` | |
+| `source/vscode/agents/robert-spec.frontmatter.yml` + `source/shared/agents/robert-spec.md` | `.github/agents/robert-spec.agent.md` | |
+| `source/vscode/agents/sable.frontmatter.yml` + `source/shared/agents/sable.md` | `.github/agents/sable.agent.md` | |
+| `source/vscode/agents/sable-ux.frontmatter.yml` + `source/shared/agents/sable-ux.md` | `.github/agents/sable-ux.agent.md` | |
+| `source/vscode/agents/agatha.frontmatter.yml` + `source/shared/agents/agatha.md` | `.github/agents/agatha.agent.md` | |
+| `source/vscode/agents/distillator.frontmatter.yml` + `source/shared/agents/distillator.md` | `.github/agents/distillator.agent.md` | |
+| `source/vscode/agents/scout.frontmatter.yml` + `source/shared/agents/scout.md` | `.github/agents/scout.agent.md` | |
+| `source/vscode/agents/synthesis.frontmatter.yml` + `source/shared/agents/synthesis.md` | `.github/agents/synthesis.agent.md` | |
+| `source/vscode/agents/sherlock.frontmatter.yml` + `source/shared/agents/sherlock.md` | `.github/agents/sherlock.agent.md` | |
+| `---\n---\n` + `source/shared/rules/default-persona.md` | `.github/instructions/default-persona.instructions.md` | Always-apply (no `applyTo:`) |
+| `---\n---\n` + `source/shared/rules/agent-system.md` | `.github/instructions/agent-system.instructions.md` | Always-apply |
+| `---\n---\n` + `source/shared/variants/branch-lifecycle-{strategy}.md` | `.github/instructions/branch-lifecycle.instructions.md` | Always-apply, selected variant only |
+| `source/vscode/rules/pipeline-orchestration.frontmatter.yml` + `source/shared/rules/pipeline-orchestration.md` | `.github/instructions/pipeline-orchestration.instructions.md` | `applyTo: "docs/pipeline/**"` |
+| `source/vscode/rules/pipeline-models.frontmatter.yml` + `source/shared/rules/pipeline-models.md` | `.github/instructions/pipeline-models.instructions.md` | `applyTo: "docs/pipeline/**"` |
+| `source/vscode/hooks/hooks.json` | `.github/hooks/hooks.json` | Hook event registrations |
+| `source/vscode/hooks/enforcement-config.json` | `.github/hooks/enforcement-config.json` | Customized with project paths |
+| `source/shared/hooks/session-boot.sh` | `.github/hooks/session-boot.sh` | |
+| `source/shared/hooks/hook-lib.sh` | `.github/hooks/hook-lib.sh` | |
+| `source/shared/hooks/pipeline-state-path.sh` | `.github/hooks/pipeline-state-path.sh` | |
+| `source/claude/hooks/enforce-*.sh` (all matching) | `.github/hooks/enforce-*.sh` | Reuse Claude Code scripts |
+| `source/cursor/hooks/enforce-paths.sh` | `.github/hooks/enforce-paths.sh` | VSCode path dispatcher (not in claude/ glob) |
+| `source/shared/references/*.md` | `.github/references/*.md` | Plain `.md`, no conversion |
+| `skills/*/SKILL.md` and supporting files | `.github/skills/*/SKILL.md` | Skill directories |
+| Brain MCP config (when brain enabled) | `.github/mcp.json` | |
+| `source/shared/pipeline/*.md` + `pipeline-config.json` | `docs/pipeline/` (state files, state file guard applies) | Shared with other targets |
+
+**VSCode does not use `settings.json`.** All hook registrations are in `.github/hooks/hooks.json`. No `.claude/settings.json` step runs for VSCode.
+
+**VSCode does not install commands directory.** Slash commands map to user-invocable agents (`user-invocable: true` in frontmatter). No `.github/commands/` directory needed.
 
 **State file guard:** The 5 pipeline state files in `docs/pipeline/` and `.claude/pipeline-config.json` are live state — they contain active pipeline progress, user decisions, and project configuration. On re-install or update:
 - If the destination file already exists, **skip it** — do not overwrite

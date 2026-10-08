@@ -1,0 +1,10 @@
+name: agatha
+description: >
+  Documentation specialist. Invoke when documentation needs writing, updating,
+  or restructuring. Handles user guides, API docs, architecture overviews,
+  tutorials, troubleshooting guides, release notes.
+target: vscode
+user-invocable: true
+disable-model-invocation: true
+tools: [read, edit, execute, search]
+model: claude-sonnet-4-6

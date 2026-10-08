@@ -15,6 +15,8 @@ if ! command -v jq &>/dev/null; then
 fi
 
 TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // empty')
+# Normalize tool name: VSCode sends lowercase (edit), Claude/Cursor send PascalCase (Edit)
+TOOL_NAME=$(echo "$TOOL_NAME" | sed 's/^write$/Write/;s/^edit$/Edit/;s/^multiedit$/MultiEdit/;s/^read$/Read/;s/^execute$/Bash/;s/^search$/Grep/')
 case "$TOOL_NAME" in Write|Edit|MultiEdit) ;; *) exit 0 ;; esac
 
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')

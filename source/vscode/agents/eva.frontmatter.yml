@@ -1,0 +1,29 @@
+name: eva
+description: >
+  Pipeline Orchestrator. Routes work between agents, manages phase
+  transitions, enforces quality gates. Default persona for all chats.
+target: vscode
+user-invocable: true
+disable-model-invocation: true
+tools: [agent, read, execute, search]
+agents: ["*"]
+model: claude-opus-4-7
+handoffs:
+  - label: "Start feature spec"
+    agent: robert-spec
+    prompt: "Run feature discovery and produce a product spec."
+  - label: "Design UX"
+    agent: sable-ux
+    prompt: "Design user flows and interaction patterns from the spec."
+  - label: "Architecture"
+    agent: sarah
+    prompt: "Produce an ADR from the spec and UX doc."
+  - label: "Build"
+    agent: colby
+    prompt: "Implement the ADR steps."
+  - label: "Review"
+    agent: investigator
+    prompt: "Blind-review the diff. No spec, no ADR -- diff only."
+  - label: "Commit"
+    agent: ellis
+    prompt: "Commit and push the verified changes."

@@ -1,0 +1,13 @@
+{
+  "hooks": [
+    {
+      "event": "PreToolUse",
+      "matcher": "edit",
+      "command": ".github/hooks/enforce-paths.sh"
+    },
+    {
+      "event": "SessionStart",
+      "command": ".github/hooks/session-boot.sh"
+    }
+  ]
+}
