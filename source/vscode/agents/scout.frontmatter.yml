@@ -8,4 +8,4 @@ target: vscode
 user-invocable: false
 disable-model-invocation: true
 tools: [read, execute, search]
-model: claude-haiku-4-5-20251001
+model: {model_tier1}

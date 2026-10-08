@@ -987,6 +987,38 @@ Note: `sable` and `sable-ux` are always-on and never appear in the roster. `robe
 "generic_commit_enabled": true
 ```
 
+### Step 1g: Select Models (VSCode only)
+
+**Claude Code and Cursor: skip this step.** They use the existing `model_provider` + `pipeline-models.md` system.
+
+**VSCode only:** Copilot model names differ from Anthropic IDs. The pipeline uses 4 model tiers. Ask the user to confirm or change each tier's model:
+
+> The pipeline assigns models to agents by tier. VSCode/Copilot uses different
+> model names than Claude Code. Please confirm or change each tier's model:
+>
+> | Tier | Role | Default |
+> |------|------|---------|
+> | Tier 4 (architectural) | Eva, Sarah | Claude Sonnet 4 |
+> | Tier 3 (critical-path) | Colby, Poirot, Sherlock | Claude Sonnet 4 |
+> | Tier 2 (supporting) | Robert, Sable, Agatha, Ellis | Claude Sonnet 4 |
+> | Tier 1 (mechanical) | Scout | Claude Sonnet 4 |
+>
+> Enter model names as they appear in your Copilot model picker.
+> Press Enter to accept defaults. Type a model name to override.
+
+**Defaults:** All 4 tiers default to `Claude Sonnet 4` — a safe baseline available on all Copilot Enterprise tiers. Users can upgrade Tier 4 to `Claude Opus 4` or any other available model.
+
+**Write to pipeline-config.json:** Save the selected models in `.github/pipeline-config.json`:
+
+```json
+"vscode_models": {
+  "tier4": "Claude Sonnet 4",
+  "tier3": "Claude Sonnet 4",
+  "tier2": "Claude Sonnet 4",
+  "tier1": "Claude Sonnet 4"
+}
+```
+
 ### Step 2: Read Templates
 
 Read the template files from the plugin's templates directory. These serve as the base for each installed file. Source files are split into four directories: `source/shared/` (platform-agnostic content), `source/claude/` (Claude Code overlays), `source/cursor/` (Cursor overlays), and `source/vscode/` (VSCode overlays).
@@ -1183,6 +1215,8 @@ When VSCode is detected, assemble and write to `.github/` instead of `.claude/`.
 | `source/shared/pipeline/*.md` | `docs/pipeline/` (state file guard applies) | Shared with other targets |
 | `source/shared/pipeline/pipeline-config.json` | `.github/pipeline-config.json` | Branching strategy configuration (state file guard applies) |
 
+**VSCode model placeholder resolution:** During VSCode frontmatter assembly, replace `{model_tier1}` through `{model_tier4}` in each agent frontmatter with the corresponding values from `pipeline-config.json: vscode_models`. This follows the same `{placeholder}` resolution pattern used for `{pipeline_state_dir}`, `{config_dir}`, `{test_command}`, etc.
+
 **VSCode does not use `settings.json`.** All hook registrations are in `.github/hooks/hooks.json`. No `.claude/settings.json` step runs for VSCode.
 
 **VSCode does not install commands directory.** Slash commands map to user-invocable agents (`user-invocable: true` in frontmatter). No `.github/commands/` directory needed.
@@ -1214,6 +1248,10 @@ The following placeholders in template files must be replaced with project-speci
 | `{{COVERAGE_THRESHOLDS}}` | Coverage targets | "stmt=70, branch=65, fn=75, lines=70" |
 | `{source_dir}` | Project source directory | `src/`, `lib/`, `app/` |
 | `{features_dir}` | Feature directory pattern | `src/features/`, `app/domains/` |
+| `{model_tier4}` | VSCode Tier 4 model (Eva, Sarah) | `Claude Sonnet 4` |
+| `{model_tier3}` | VSCode Tier 3 model (Colby, Poirot, Sherlock) | `Claude Sonnet 4` |
+| `{model_tier2}` | VSCode Tier 2 model (Robert, Sable, Agatha, Ellis) | `Claude Sonnet 4` |
+| `{model_tier1}` | VSCode Tier 1 model (Scout) | `Claude Sonnet 4` |
 
 **Replacement method — IMPORTANT:** Use the Read tool to load each installed file, perform substitutions in memory, then write the result back with the Write tool. Do NOT use `sed` for these replacements. BSD `sed` on macOS does not support multi-line replacement strings — values like `{{TECH_STACK}}` or `{{SOURCE_STRUCTURE}}` may contain newlines, which cause `sed` to misread the characters after the newline as flags and fail with `bad flag in substitute command`.
 

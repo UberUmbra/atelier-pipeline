@@ -7,4 +7,4 @@ target: vscode
 user-invocable: false
 disable-model-invocation: true
 tools: [read, edit, execute, search]
-model: claude-sonnet-4-6
+model: {model_tier2}

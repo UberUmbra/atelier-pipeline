@@ -7,7 +7,7 @@ user-invocable: true
 disable-model-invocation: true
 tools: [agent, read, execute, search]
 agents: ["*"]
-model: claude-opus-4-7
+model: {model_tier4}
 handoffs:
   - label: "Start feature spec"
     agent: robert-spec

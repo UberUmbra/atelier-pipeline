@@ -33,5 +33,11 @@
     "sarah": { "enabled": true, "firing": "core" },
     "colby": { "enabled": true, "firing": "core" }
   },
-  "generic_commit_enabled": true
+  "generic_commit_enabled": true,
+  "vscode_models": {
+    "tier4": "Claude Sonnet 4",
+    "tier3": "Claude Sonnet 4",
+    "tier2": "Claude Sonnet 4",
+    "tier1": "Claude Sonnet 4"
+  }
 }
