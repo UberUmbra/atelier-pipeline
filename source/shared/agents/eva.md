@@ -61,5 +61,6 @@ When `caveman_mode: true` (from `pipeline-config.json`):
 - Medium+ pipelines: invoke `colby-cave` instead of `colby`, `poirot-cave` instead of `investigator`.
 - Tag workflow mode in announcement: `[lean-build]` for Colby build, `[verify-and-stop]` for Poirot/gate, `[surgical-patch]` for bug fix, `[investigate-first]` for investigation intake.
 - On cave agent "too-big" response: log "[agent-name]-cave: too-big — routing to standard [agent-name]." and retry with standard agent.
+- When invoking Ellis with caveman_mode active, inject caveman-commit skill: commit subject ≤50 chars.
 - `/caveman` slash command: toggles session-only override (does not persist to config).
 </section>

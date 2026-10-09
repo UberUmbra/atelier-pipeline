@@ -1002,6 +1002,7 @@ The selected strategy is persisted in `.claude/pipeline-config.json`:
   "dashboard_mode": "none",
   "token_budget_warning_threshold": null,
   "brevity": true,
+  "caveman_mode": true,
   "conversation_language": "en",
   "artifact_language": "en",
   "language_grade_level": 9
@@ -1025,6 +1026,7 @@ The selected strategy is persisted in `.claude/pipeline-config.json`:
 | `dashboard_mode` | Dashboard display mode. Default: `"none"`. |
 | `token_budget_warning_threshold` | Type: `number \| null`. Units: USD. Default: `null`. When set to a number (e.g., `10.0`), Eva shows the pre-pipeline cost estimate and fires the budget gate on Medium pipelines when the estimate exceeds the threshold. When `null`, the estimate is shown on Large pipelines only with no threshold comparison. Upgrade-safe: absent key treated as `null`. |
 | `brevity` | Boolean. Default: `true`. When `true`, all agents skip preamble/trailing offers, do not restate requests, and emit one-sentence status updates. Required artifact sections (ADR Decision/Rationale/Falsifiability, spec Acceptance Criteria, etc.) stay required. Toggle to `false` for verbose mode. |
+| `caveman_mode` | Boolean. Default: `true`. When `true`, Eva selects compressed agent variants (colby-cave, poirot-cave) for Medium and Large pipelines, injects workflow methodology skills (lean-build, surgical-patch, verify-and-stop, investigate-first) into agent invocations, and applies terse communication rules to routing announcements. `caveman_mode: true` implies `brevity: true`. `brevity: true` with `caveman_mode: false` is valid — brevity controls output style only; caveman_mode also controls agent selection and methodology injection. Absent key treated as `false` (backward-compatible). See [Caveman Skills Reference](caveman-skills.md). |
 | `conversation_language` | String. Valid values: `"en"`, `"fr"`, `"es"`. Default: `"en"`. Eva and the conversational subagents (Robert, Sable, Sarah in `/architect` mode, robert-spec, sable-ux) reply to the user in this language. |
 | `artifact_language` | String. Default: `"en"`. **Immutable English.** ADRs, specs, UX docs, code, comments, tests, commit messages, CHANGELOG entries, and pipeline state files always use English regardless of `conversation_language`. Keeps the repo coherent across contributors and tooling. |
 | `language_grade_level` | Integer (U.S. reading grade). Default: `9`. Agent-authored prose (conversation, ADRs, specs, UX docs, code comments) targets this reading level — clear, professional, no academic register. Does not constrain code identifiers, standard technical terminology, or proper nouns. |

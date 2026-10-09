@@ -24,6 +24,7 @@ A structured, multi-agent development workflow for Claude Code and Cursor. Twelv
 - [Branching Strategy](#branching-strategy)
 - [Sentinel Security Agent](#sentinel-security-agent)
 - [Agent Teams](#agent-teams)
+- [Caveman Mode](#caveman-mode)
 - [CI Watch](#ci-watch)
 - [Deps Agent](#deps-agent)
 - [Darwin Agent](#darwin-agent)
@@ -257,6 +258,26 @@ Queuing fix for Colby.
 
 Eva: Colby fixed the validation. Poirot scoped re-run passed. Ellis committing Wave 1.
 ```
+
+### Cave agent variants
+
+When `caveman_mode: true`, Eva automatically uses compressed versions of Colby and Poirot on Medium and Large pipelines.
+
+**colby-cave** produces one line per changed file instead of a prose report:
+
+```
+source/shared/pipeline/pipeline-config.json:L27: caveman_mode field added. Verified: grep confirmed.
+```
+
+**poirot-cave** produces one line per finding instead of a paragraph:
+
+```
+src/api/users.js:L47: FIX-REQUIRED: PATCH endpoint skips email validation. Add format check before DB write.
+```
+
+If a task requires more than 2 files, colby-cave signals this and Eva retries with standard Colby automatically. You see a note in the routing announcement. This is a normal fallback, not an error.
+
+For the full skill catalog, trigger conditions, and worked examples, see [Caveman Skills Reference](caveman-skills.md).
 
 ### Interacting during a pipeline
 
@@ -612,6 +633,51 @@ Both gates must pass. If either fails, the pipeline falls back to sequential exe
 - Poirot, Robert, Sable, Ellis, Agatha, and all other agents are invoked sequentially
 - All 12 mandatory gates are preserved
 - Pipeline output is identical -- Agent Teams affects speed, not correctness
+
+---
+
+## Caveman Mode
+
+Caveman mode reduces token usage and output length across the pipeline. When `caveman_mode: true` (the default for new installs), Eva uses compressed agent variants, applies terse communication rules to routing announcements, and injects workflow methodology skills into Colby and Poirot invocations.
+
+### What changes in your session
+
+- **Routing announcements** are shorter. One line instead of a paragraph.
+- **Poirot findings** are one line each: `file:L{n}: SEVERITY: problem. fix.`
+- **Colby build reports** show one line per changed file instead of a prose summary.
+- **Workflow methodology** (lean-build, surgical-patch, etc.) is injected automatically on Medium and Large pipelines, restricting agents to the narrowest scope the acceptance criteria require.
+
+Cave agents are selected automatically based on pipeline size. You do not need to configure this separately from `caveman_mode`.
+
+### The caveman_mode config field
+
+`caveman_mode` is a Boolean field in `pipeline-config.json`. Default: `true` for new installs. Absent key is treated as `false` (backward-compatible with pre-ADR-0062 installs).
+
+```json
+{
+  "caveman_mode": true
+}
+```
+
+`caveman_mode: true` implies `brevity: true`. Setting `brevity: true` with `caveman_mode: false` is valid — brevity controls output style only; caveman_mode also controls agent selection and methodology injection.
+
+### Session toggle
+
+Type `/caveman` to enable or disable caveman mode for the current session. This does not write to `pipeline-config.json`. The toggle resets when you close the IDE.
+
+### Installation (pipeline-setup)
+
+Caveman skills are installed automatically on all three targets during `/pipeline-setup` — `.claude/` (Claude Code), `.cursor/` (Cursor), and `.github/` (VSCode Copilot). No separate activation step is needed. When `caveman_mode: true` is the default in your generated config, the mode is active from the first session.
+
+### Existing installs
+
+If your `pipeline-config.json` predates ADR-0062, `caveman_mode` is absent. The pipeline runs in standard (non-caveman) mode until you add the key. Re-run `/pipeline-setup` to get the full caveman skill files installed and `caveman_mode: true` set, or add the key manually to your config file.
+
+### Disabling caveman mode
+
+Set `caveman_mode: false` in your config file to turn it off permanently. To disable for the current session only, type `/caveman off` or "normal mode."
+
+For the full skill catalog, trigger conditions, and worked examples, see [Caveman Skills Reference](caveman-skills.md).
 
 ---
 

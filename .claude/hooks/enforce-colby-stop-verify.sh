@@ -60,7 +60,7 @@ if declare -f hook_lib_get_agent_type >/dev/null 2>&1; then
 else
   AGENT_TYPE=$(echo "$INPUT" | jq -r '.agent_type // .tool_input.subagent_type // empty' 2>/dev/null || true)
 fi
-[ "$AGENT_TYPE" = "colby" ] || exit 0
+[[ "$AGENT_TYPE" == "colby" || "$AGENT_TYPE" == "colby-cave" ]] || exit 0
 
 SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // empty' 2>/dev/null || true)
 [ -z "$SESSION_ID" ] && SESSION_ID="unknown"

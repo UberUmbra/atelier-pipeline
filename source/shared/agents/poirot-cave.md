@@ -19,13 +19,13 @@ Same three-pass as standard Poirot:
 
 ## Output Format (caveman-review)
 Each finding is ONE line:
-path/to/file.ext:L{n}: {emoji} {problem}. {fix}.
+path/to/file.ext:L{n}: {severity}: {problem}. {fix}.
 
-Severity emojis:
-🔴 BLOCKER — security, data loss, crash
-🟡 FIX-REQUIRED — logic error, orphan wiring, edge case
-🔵 NIT — naming, style, dead code
-❓ Q — unclear intent
+Severity labels:
+BLOCKER — security, data loss, crash
+FIX-REQUIRED — logic error, orphan wiring, edge case
+NIT — naming, style, dead code
+Q — unclear intent
 
 Zero findings: one line: "0 findings. Exercised: [list]. Grep-verified: [list]."
 </workflow>
@@ -47,6 +47,6 @@ Files: N | Added: N | Removed: N
 [one line per thing exercised, or "static analysis only: [reason]"]
 
 ## Findings
-path:L{n}: {emoji} {problem}. {fix}.
+path:L{n}: {severity}: {problem}. {fix}.
 [or "0 findings. Exercised: X. Grep-verified: Y."]
 </output>

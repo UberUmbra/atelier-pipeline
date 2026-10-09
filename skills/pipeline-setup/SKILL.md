@@ -1153,6 +1153,8 @@ Files are assembled from `source/shared/` (content) + `source/claude/` (overlays
 | `source/shared/agents/sable-ux.md` + `source/claude/agents/sable-ux.frontmatter.yml` | `.claude/agents/sable-ux.md` | UX design producer subagent persona (overlay assembly) |
 | `source/shared/agents/scout.md` + `source/claude/agents/scout.frontmatter.yml` | `.claude/agents/scout.md` | Read-only file/grep/read scout subagent persona (overlay assembly, ADR-0048) |
 | `source/shared/agents/synthesis.md` + `source/claude/agents/synthesis.frontmatter.yml` | `.claude/agents/synthesis.md` | Post-scout filter/rank/trim synthesis subagent persona (overlay assembly, ADR-0048) |
+| `source/shared/agents/colby-cave.md` + `source/claude/agents/colby-cave.frontmatter.yml` | `.claude/agents/colby-cave.md` | Caveman engineer subagent persona -- compressed-output surgical variant (overlay assembly, ADR-0062) |
+| `source/shared/agents/poirot-cave.md` + `source/claude/agents/poirot-cave.frontmatter.yml` | `.claude/agents/poirot-cave.md` | Caveman blind investigator subagent persona -- compressed-output variant (overlay assembly, ADR-0062) |
 | `source/shared/commands/pm.md` assembled with overlay | `.claude/commands/pm.md` | /pm slash command |
 | `source/shared/commands/ux.md` assembled with overlay | `.claude/commands/ux.md` | /ux slash command |
 | `source/shared/commands/architect.md` assembled with overlay | `.claude/commands/architect.md` | /architect slash command |
@@ -1197,6 +1199,8 @@ When VSCode is detected, assemble and write to `.github/` instead of `.claude/`.
 | `source/vscode/agents/scout.frontmatter.yml` + `source/shared/agents/scout.md` | `.github/agents/scout.agent.md` | |
 | `source/vscode/agents/synthesis.frontmatter.yml` + `source/shared/agents/synthesis.md` | `.github/agents/synthesis.agent.md` | |
 | `source/vscode/agents/sherlock.frontmatter.yml` + `source/shared/agents/sherlock.md` | `.github/agents/sherlock.agent.md` | |
+| `source/vscode/agents/colby-cave.frontmatter.yml` + `source/shared/agents/colby-cave.md` | `.github/agents/colby-cave.agent.md` | |
+| `source/vscode/agents/poirot-cave.frontmatter.yml` + `source/shared/agents/poirot-cave.md` | `.github/agents/poirot-cave.agent.md` | |
 | `---\n---\n` + `source/shared/rules/default-persona.md` | `.github/instructions/default-persona.instructions.md` | Always-apply (no `applyTo:`) |
 | `---\n---\n` + `source/shared/rules/agent-system.md` | `.github/instructions/agent-system.instructions.md` | Always-apply |
 | `---\n---\n` + `source/shared/variants/branch-lifecycle-{strategy}.md` | `.github/instructions/branch-lifecycle.instructions.md` | Always-apply, selected variant only |
