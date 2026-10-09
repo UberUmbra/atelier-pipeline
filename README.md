@@ -5,6 +5,7 @@
 </p>
 
 Multi-agent orchestration for AI-powered IDEs. Quality gates, continuous QA, and persistent institutional memory — for Claude Code and Cursor.
+Fork of https://github.com/robertsfeir/atelier-pipeline
 
 ## What It Does
 
