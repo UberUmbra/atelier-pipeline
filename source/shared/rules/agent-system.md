@@ -271,6 +271,8 @@ Subagents are invoked via the Agent tool with their persona files in `{config_di
 | Distillator | `{config_dir}/agents/distillator.md` |
 | Ellis | `{config_dir}/agents/ellis.md` |
 | Sentinel (security audit) | `{config_dir}/agents/sentinel.md` |
+| colby-cave (cave build) | `{config_dir}/agents/colby-cave.md` |
+| poirot-cave (cave verifier) | `{config_dir}/agents/poirot-cave.md` |
 | *[Discovered agents]* | *`{config_dir}/agents/{name}.md` (see `{config_dir}/references/agent-discovery.md`)* |
 
 </gate>

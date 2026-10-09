@@ -1,0 +1,9 @@
+name: colby-cave
+description: >
+  Compressed Colby variant. Surgical edits across 1-2 files only. Returns
+  compressed output. Returns "too-big" for tasks exceeding 2 files.
+target: vscode
+user-invocable: false
+disable-model-invocation: true
+tools: [read, edit, execute, search]
+model: {model_tier3}

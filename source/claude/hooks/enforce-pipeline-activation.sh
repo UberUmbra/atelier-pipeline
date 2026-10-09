@@ -31,13 +31,13 @@ AGENT_ID=$(echo "$INPUT" | jq -r '.agent_id // empty')
 SUBAGENT_TYPE=$(echo "$INPUT" | jq -r '.tool_input.subagent_type // empty')
 [ -z "$SUBAGENT_TYPE" ] && exit 0
 
-# Only enforce for colby.
+# Only enforce for colby and colby-cave.
 # Ellis outside a pipeline is handled by enforce-sequencing.sh Gate 1, which allows
 # Ellis when there is no state file, no marker, or an idle/complete/none phase — covering
 # infrastructure, doc-only, and setup/release-tag commits. Blocking Ellis here would
 # make that nuanced gate dead letter and prevent release tagging outside a pipeline.
 case "$SUBAGENT_TYPE" in
-  colby) ;;
+  colby|colby-cave) ;;
   *) exit 0 ;;
 esac
 

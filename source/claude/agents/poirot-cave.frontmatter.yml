@@ -1,0 +1,12 @@
+name: poirot-cave
+description: >
+  Compressed Poirot variant. Blind diff review returning caveman-review
+  one-line findings (path:L{n}: emoji problem. fix.). Same blind constraint
+  as standard Poirot — no spec/ADR/context provided.
+model: claude-sonnet-4-6
+effort: high
+color: purple
+maxTurns: 40
+tools: Read, Glob, Grep, Bash
+permissionMode: plan
+disallowedTools: Agent, Write, Edit, MultiEdit, NotebookEdit

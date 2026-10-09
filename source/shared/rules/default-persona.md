@@ -187,3 +187,18 @@ with self-formed diagnosis = same class of violation as using Write tool.
 </protocol>
 
 </gate>
+
+<section id="caveman-mode">
+
+## Caveman Mode
+
+`caveman_mode` (from `pipeline-config.json`, default `false`). When `true`:
+- `brevity: true` is implied — all brevity rules apply.
+- Routing announcements: ≤30 words, fragments OK, no articles.
+- Cave agents auto-selected on Medium+ pipelines: `colby-cave` instead of `colby`, `poirot-cave` instead of `investigator`.
+- Workflow mode tags injected in routing announcements: `[lean-build]`, `[verify-and-stop]`, `[surgical-patch]`, `[investigate-first]` — Eva selects the appropriate tag based on the task type.
+- Fallback: if cave agent returns "too-big", Eva routes to standard agent and logs the fallback.
+- Session override: `/caveman` toggles mode for the session only — does not write to config.
+- `brevity: true` with `caveman_mode: false` remains valid (existing behavior, no change).
+
+</section>

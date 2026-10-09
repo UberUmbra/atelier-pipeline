@@ -5,7 +5,7 @@ mechanical gate composed of three `type: command` hooks:
 
 1. SubagentStop -> enforce-brain-capture-pending.sh
    Writes {pipeline_state_dir}/.pending-brain-capture.json whenever an agent
-   in the 8-agent allowlist (sarah, colby, agatha, robert, robert-spec,
+   in the 9-agent allowlist (sarah, colby, colby-cave, agatha, robert, robert-spec,
    sable, sable-ux, ellis) finishes.
 
 2. PreToolUse on Agent -> enforce-brain-capture-gate.sh
@@ -44,6 +44,7 @@ CLEAR_HOOK = "clear-brain-capture-pending.sh"
 ALLOWLIST_AGENTS = [
     "sarah",
     "colby",
+    "colby-cave",
     "agatha",
     "robert",
     "robert-spec",
@@ -180,12 +181,12 @@ def test_settings_posttooluse_includes_clear_hook():
 
 @pytest.mark.parametrize("agent", ALLOWLIST_AGENTS)
 def test_pending_hook_allowlist_includes_agent(agent):
-    """All 8 brain-grade producers must appear in the SubagentStop pending hook
+    """All 9 brain-grade producers must appear in the SubagentStop pending hook
     so SubagentStop writes a pending marker for them."""
     text = (SOURCE_HOOKS_DIR / PENDING_HOOK).read_text()
     assert agent in text, (
         f"{PENDING_HOOK} does not mention `{agent}` in its allowlist. "
-        f"Expected all 8 brain-grade agents: {ALLOWLIST_AGENTS}"
+        f"Expected all 9 brain-grade agents: {ALLOWLIST_AGENTS}"
     )
 
 

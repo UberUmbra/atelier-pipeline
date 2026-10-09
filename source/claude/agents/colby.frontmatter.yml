@@ -10,7 +10,3 @@ color: green
 maxTurns: 120
 tools: Read, Write, Edit, MultiEdit, Glob, Grep, Bash
 permissionMode: acceptEdits
-hooks:
-  - event: PreToolUse
-    matcher: Write|Edit|MultiEdit
-    command: .claude/hooks/enforce-colby-paths.sh

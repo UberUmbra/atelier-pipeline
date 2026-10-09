@@ -1211,6 +1211,7 @@ When VSCode is detected, assemble and write to `.github/` instead of `.claude/`.
 | `source/cursor/hooks/enforce-paths.sh` | `.github/hooks/enforce-paths.sh` | VSCode path dispatcher (not in claude/ glob) |
 | `source/shared/references/*.md` | `.github/references/*.md` | Plain `.md`, no conversion |
 | `skills/*/SKILL.md` and supporting files | `.github/skills/*/SKILL.md` | Skill directories |
+| `skills/caveman/*/SKILL.md` | `.github/skills/caveman/*/SKILL.md` | Caveman skill directories (Claude Code/Cursor: available via plugin) |
 | Brain MCP config (when brain enabled) | `.github/mcp.json` | |
 | `source/shared/pipeline/*.md` | `docs/pipeline/` (state file guard applies) | Shared with other targets |
 | `source/shared/pipeline/pipeline-config.json` | `.github/pipeline-config.json` | Branching strategy configuration (state file guard applies) |

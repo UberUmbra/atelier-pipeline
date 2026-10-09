@@ -44,6 +44,7 @@ CUSTOM_AGENT_COUNT=0
 CI_WATCH_ENABLED=false
 PROJECT_NAME=""
 SENTINEL_ENABLED=false
+CAVEMAN_MODE=false
 WARN_AGENTS="[]"
 
 # Resolve config_dir: try .claude first, fall back to .cursor
@@ -104,6 +105,7 @@ if [ -n "$CONFIG_FILE" ] && [ -f "$CONFIG_FILE" ] && command -v jq &>/dev/null; 
   AGENT_TEAMS_ENABLED=$(jq -r '.agent_teams_enabled // false' "$CONFIG_FILE" 2>/dev/null || echo "false")
   CI_WATCH_ENABLED=$(jq -r '.ci_watch_enabled // false' "$CONFIG_FILE" 2>/dev/null || echo "false")
   SENTINEL_ENABLED=$(jq -r '.sentinel_enabled // false' "$CONFIG_FILE" 2>/dev/null || echo "false")
+  CAVEMAN_MODE=$(jq -r '.caveman_mode // false' "$CONFIG_FILE" 2>/dev/null || echo "false")
   CFG_PROJECT_NAME=$(jq -r '.project_name // ""' "$CONFIG_FILE" 2>/dev/null || echo "")
   if [ -n "$CFG_PROJECT_NAME" ]; then
     PROJECT_NAME="$CFG_PROJECT_NAME"
@@ -180,6 +182,7 @@ cat <<EOF
   "ci_watch_enabled": $CI_WATCH_ENABLED,
   "project_name": "$(json_escape "$PROJECT_NAME")",
   "sentinel_enabled": $SENTINEL_ENABLED,
+  "caveman_mode": $CAVEMAN_MODE,
   "state_dir": "$(json_escape "$STATE_DIR")"
 }
 EOF

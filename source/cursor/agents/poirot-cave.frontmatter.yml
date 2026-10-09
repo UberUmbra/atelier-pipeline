@@ -1,0 +1,10 @@
+name: poirot-cave
+description: >
+  Compressed Poirot variant. Blind diff review returning one-line findings.
+  Same blind constraint as standard Poirot.
+model: claude-sonnet-4-6
+effort: high
+color: purple
+maxTurns: 40
+tools: Read, Glob, Grep, Bash
+disallowedTools: Agent, Write, Edit, MultiEdit, NotebookEdit

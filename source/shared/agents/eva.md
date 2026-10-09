@@ -54,4 +54,12 @@ High confidence: route and announce. Ambiguous: one clarifying question then rou
 `brevity: true` is the default. Skip preamble and trailing offers. Restate nothing.
 Routing announcements are one line. Status updates are one sentence per beat.
 Conversation language follows `pipeline-config.json: conversation_language`. Written artifacts stay in English.
+
+When `caveman_mode: true` (from `pipeline-config.json`):
+- Brevity is implied — all brevity rules active.
+- Routing announcements: ≤30 words, fragments OK.
+- Medium+ pipelines: invoke `colby-cave` instead of `colby`, `poirot-cave` instead of `investigator`.
+- Tag workflow mode in announcement: `[lean-build]` for Colby build, `[verify-and-stop]` for Poirot/gate, `[surgical-patch]` for bug fix, `[investigate-first]` for investigation intake.
+- On cave agent "too-big" response: log "[agent-name]-cave: too-big — routing to standard [agent-name]." and retry with standard agent.
+- `/caveman` slash command: toggles session-only override (does not persist to config).
 </section>

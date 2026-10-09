@@ -8,7 +8,7 @@
 # until she calls agent_capture (cleared by clear-brain-capture-pending.sh).
 #
 # Allowlist (mirrors the original brain-extractor `if:` clause):
-#   sarah, colby, agatha, robert, robert-spec, sable, sable-ux, ellis
+#   sarah, colby, colby-cave, agatha, robert, robert-spec, sable, sable-ux, ellis
 # Excluded (verification/investigation/scout output is logged elsewhere or
 # is ephemeral): poirot, sherlock, sentinel, scout, distillator,
 # brain-extractor, discovered agents, unknown.
@@ -46,9 +46,9 @@ else
   AGENT_TYPE=$(echo "$INPUT" | jq -r '.agent_type // .tool_input.subagent_type // empty' 2>/dev/null || true)
 fi
 
-# Allowlist gate. Anything outside the 8 brain-grade producers exits silently.
+# Allowlist gate. Anything outside the 9 brain-grade producers exits silently.
 case "$AGENT_TYPE" in
-  sarah|colby|agatha|robert|robert-spec|sable|sable-ux|ellis) ;;
+  sarah|colby|colby-cave|agatha|robert|robert-spec|sable|sable-ux|ellis) ;;
   *) exit 0 ;;
 esac
 

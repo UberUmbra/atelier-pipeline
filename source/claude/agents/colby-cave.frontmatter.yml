@@ -1,0 +1,11 @@
+name: colby-cave
+description: >
+  Compressed Colby variant. Surgical edits across 1-2 files only. Returns
+  compressed output (path:L{n}: change. Verified: how.). Returns "too-big"
+  for tasks exceeding 2 files — use standard Colby instead.
+model: claude-sonnet-4-6
+effort: high
+color: green
+maxTurns: 40
+tools: Read, Write, Edit, Glob, Grep, Bash
+permissionMode: acceptEdits

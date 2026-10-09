@@ -4,25 +4,28 @@
 # Performance: This hook has an `if` conditional in settings.json:
 #   "if": "tool_input.subagent_type == 'sarah'
 #       || tool_input.subagent_type == 'colby'
+#       || tool_input.subagent_type == 'colby-cave'
 #       || tool_input.subagent_type == 'scout'"
 # Claude Code evaluates this before spawning the process, skipping every
 # Agent invocation for agents this hook would no-op on (agatha, ellis,
 # robert, sable, robert-spec, sable-ux, poirot, sentinel, sherlock,
 # distillator, brain-extractor, discovered agents). When the `if` passes,
 # this script runs and enforces:
-#   - sarah:  <research-brief> evidence block contract
-#   - colby:  <colby-context>  evidence block contract
-#   - scout:  file-dump format contract ('=== FILE:' delimiter,
-#             {FILES} placeholder substitution)
+#   - sarah:      <research-brief> evidence block contract
+#   - colby:      <colby-context>  evidence block contract
+#   - colby-cave: <colby-context>  evidence block contract
+#   - scout:      file-dump format contract ('=== FILE:' delimiter,
+#                 {FILES} placeholder substitution)
 #
-# Sizing-gated for sarah/colby. Only enforces on Medium/Large pipelines.
+# Sizing-gated for sarah/colby/colby-cave. Only enforces on Medium/Large pipelines.
 # Micro/Small skip entirely — their ceremony cost exceeds the value of
 # pre-collected scout evidence. Scout format contract is enforced
 # regardless of pipeline sizing.
 #
 # Required blocks per agent:
-#   sarah  → <research-brief>
-#   colby  → <colby-context>
+#   sarah      → <research-brief>
+#   colby      → <colby-context>
+#   colby-cave → <colby-context>
 #
 # Setup mode, agent_id (non-main-thread), or missing pipeline-state.md —
 # fail-open.
@@ -70,10 +73,10 @@ if [ "$SUBAGENT_TYPE" = "scout" ]; then
   exit 0
 fi
 
-# Only enforce for sarah and colby. Poirot is gone (v4.0); other agents have
-# no scout evidence contract.
+# Only enforce for sarah, colby, and colby-cave. Poirot is gone (v4.0); other
+# agents have no scout evidence contract.
 case "$SUBAGENT_TYPE" in
-  sarah|colby) ;;
+  sarah|colby|colby-cave) ;;
   *) exit 0 ;;
 esac
 
@@ -188,6 +191,16 @@ case "$SUBAGENT_TYPE" in
     fi
     if ! check_block_content "colby-context"; then
       echo "BLOCKED: <colby-context> block is empty or too short (< 50 chars). Run the scout fan-out to generate real search results before invoking Colby." >&2
+      exit 2
+    fi
+    ;;
+  colby-cave)
+    if ! check_block_present "colby-context"; then
+      echo "BLOCKED: Cannot invoke Colby-Cave on Medium/Large without a <colby-context> block. Run scout fan-out first to populate implementation context (pipeline-orchestration.md §Scout Fan-out Protocol)." >&2
+      exit 2
+    fi
+    if ! check_block_content "colby-context"; then
+      echo "BLOCKED: <colby-context> block is empty or too short (< 50 chars). Run the scout fan-out to generate real search results before invoking Colby-Cave." >&2
       exit 2
     fi
     ;;

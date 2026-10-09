@@ -1,0 +1,9 @@
+name: poirot-cave
+description: >
+  Compressed Poirot variant. Blind diff review returning one-line findings.
+  Same blind constraint as standard Poirot.
+target: vscode
+user-invocable: false
+disable-model-invocation: true
+tools: [read, execute, search]
+model: {model_tier3}
